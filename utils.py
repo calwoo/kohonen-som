@@ -1,4 +1,6 @@
 import numpy as np 
+import matplotlib.pyplot as plt
+from matplotlib import patches
 
 
 # data normalize to approx. [0,1]
@@ -11,7 +13,7 @@ def normalize_data(data, by_cols=True):
     return normed_data
 
 # find best matching unit
-def bmu(example, som):
+def search_bmu(example, som):
     first_flag = True
     dim = example.shape[0]
     # get distance between neurons and example, get min
@@ -34,3 +36,15 @@ def gaussian_decay(d, radius):
     exponent = -d**2 / (2 * radius**2)
     return np.exp(exponent)
 
+# graph function
+def graph_som(som):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, aspect="equal")
+    ax.set_xlim((0, som.shape[0]+1))
+    ax.set_ylim((0, som.shape[1]+1))
+    for x in range(1, som.shape[0] + 1):
+        for y in range(1, som.shape[1] + 1):
+            ax.add_patch(patches.Rectangle((x-0.5, y-0.5), 1, 1,
+                     facecolor=som[x-1,y-1,:],
+                     edgecolor='none'))
+    plt.show()

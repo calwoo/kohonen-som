@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 from utils import *
 
 """
@@ -31,20 +32,34 @@ The learning process for a SOM is as follows: for each example,
     3) Within the training radius, move those neurons slightly closer to the point as well.
     4) Update the learning rate.
 """
-# step 0: pick random example
-example = data[:, np.random.randint(0, num_examples)].reshape(-1, 1)
-# step 1: pick best matching unit (BMU) on SOM
-bmu, bmu_id = bmu(example, som)
-# step 2: move the neuron closer to point
+# initialize training loop
+radius = radius_init
+lr = lr_init
 
+for it in tqdm(range(num_iters)):
+    # step 0: pick random example
 
+    example = data[:, np.random.randint(0, num_examples)].reshape(-1, 1)
+    # step 1: pick best matching unit (BMU) on SOM
+    bmu, bmu_id = search_bmu(example, som)
 
+    # step 2+3: move the neuron(s) closer to the point
+    # points will be moved proportional to a gaussian decay centered around the bmu
+    for x in range(grid_dims[0]):
+        for y in range(grid_dims[1]):
+            neuron_weight = som[x,y,:].reshape(weight_dim, 1)
+            # get distance between neuron and bmu
+            neuron_bmu_dist = np.sum((np.array([x,y]) - bmu_id)**2)
+            # if neuron is within training radius of bmu, move it
+            if neuron_bmu_dist <= radius**2:
+                theta = gaussian_decay(neuron_bmu_dist, radius)
+                # update the weight using "gradient descent"
+                neuron_weight += lr * theta * (example - neuron_weight)
+                som[x,y,:] = neuron_weight.reshape(1, weight_dim)
 
+    # step 4: update learning rate
+    # both the radius and learning rate will decay according to exponential decay
+    radius = radius_init * np.exp(-it / time_constant)
+    lr = lr_init * np.exp(-it / num_iters)
 
-
-
-# step 4: update learning rate
-# both the radius and learning rate will decay according to exponential decay
-radius = radius_init * np.exp(-it / time_constant)
-lr = lr_init * np.exp(-it / num_iters)
-
+graph_som(som)
