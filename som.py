@@ -13,11 +13,11 @@ data = np.random.randint(0, 255, (3, 100))
 data = normalize_data(data, by_cols=True)
 
 # hyperparameters
-grid_dims = np.array([5,5])
+grid_dims = np.array([10,10])
 weight_dim = data.shape[0]
 num_examples = data.shape[1]
-num_iters = 2000
-lr_init = 0.01
+num_iters = 1000
+lr_init = 0.05
 # training radius hyperparams
 radius_init = grid_dims[0] / 2
 time_constant = num_iters / np.log(radius_init)
@@ -35,6 +35,7 @@ The learning process for a SOM is as follows: for each example,
 # initialize training loop
 radius = radius_init
 lr = lr_init
+marker = 0
 
 for it in tqdm(range(num_iters)):
     # step 0: pick random example
@@ -62,4 +63,10 @@ for it in tqdm(range(num_iters)):
     radius = radius_init * np.exp(-it / time_constant)
     lr = lr_init * np.exp(-it / num_iters)
 
-graph_som(som)
+    # save picture
+    if it % 50 == 0:
+        take_snapshot(som, marker)
+        marker += 1
+
+# make gif
+build_gif()

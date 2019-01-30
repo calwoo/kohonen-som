@@ -1,7 +1,10 @@
 import numpy as np 
+import os
 import matplotlib.pyplot as plt
 from matplotlib import patches
-
+# for making gif
+import glob
+import moviepy.editor as mpy 
 
 # data normalize to approx. [0,1]
 def normalize_data(data, by_cols=True):
@@ -40,6 +43,8 @@ def gaussian_decay(d, radius):
 def graph_som(som):
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect="equal")
+    ax.set_xticks([])
+    ax.set_yticks([])
     ax.set_xlim((0, som.shape[0]+1))
     ax.set_ylim((0, som.shape[1]+1))
     for x in range(1, som.shape[0] + 1):
@@ -47,4 +52,24 @@ def graph_som(som):
             ax.add_patch(patches.Rectangle((x-0.5, y-0.5), 1, 1,
                      facecolor=som[x-1,y-1,:],
                      edgecolor='none'))
-    plt.show()
+    return fig
+
+## for gif-making
+def take_snapshot(som, marker=0):
+    fig = graph_som(som)
+    
+    # check if there is folder
+    if not os.path.exists("./output"):
+        os.mkdir("./output")
+    
+    # save image
+    plt.savefig("./output/{}.png".format(str(marker).zfill(3)), bbox_inches="tight")
+    plt.close(fig)
+
+def build_gif(gif_name="output"):
+    fps = 12
+    # get all png files in directory
+    file_list = glob.glob("./output/*.png")
+    list.sort(file_list, key=lambda x: int(x.split(".")[1].split("/")[2]))
+    clip = mpy.ImageSequenceClip(file_list, fps=fps)
+    clip.write_gif("{}.gif".format(gif_name), fps=fps)
